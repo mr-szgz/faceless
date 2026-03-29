@@ -4,10 +4,7 @@ This file is the canonical in-repo guide for coding agents and developers workin
 
 ## Project Purpose
 
-Faceless is a CLI tool that uses YOLO object detection to separate image files that do not contain both:
-
-- a girl/woman class
-- a human face class
+Faceless is a CLI tool that uses YOLO object detection to separate image files that do not contain both faces and some set of yolo classes.
 
 Files that fail this rule are moved into a destination folder (default: `noface`) under the source directory.
 
@@ -40,9 +37,9 @@ Notes:
 - `pyproject.toml` currently requires Python `>=3.10`.
 - `mise.toml` pins local toolchain to Python `3.12`.
 
-## Runtime Behavior and Patterns
+## Runtime Behavior and Patterns, actual behaviour will differ. 
 
-### CLI contract
+### Base CLI contract, actual behaviour will differ. 
 
 Current parser in `faceless/__init__.py` supports:
 
