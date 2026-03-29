@@ -1,0 +1,29 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\Faceless]
+@="Run Faceless"
+"Icon"="C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\Faceless\command]
+@="\"C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe\" -Auto \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\FacelessForce]
+@="Run Faceless (Force Labels)"
+"Icon"="C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\FacelessForce\command]
+@="\"C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe\" -Auto -Force \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\Faceless]
+@="Run Faceless Here"
+"Icon"="C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\Faceless\command]
+@="\"C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe\" -Auto \"%V\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\FacelessForce]
+@="Run Faceless Here (Force Labels)"
+"Icon"="C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\FacelessForce\command]
+@="\"C:\\Users\\shoji\\AppData\\Local\\mise\\installs\\python\\3.10.16\\Scripts\\faceless.exe\" -Auto -Force \"%V\""
