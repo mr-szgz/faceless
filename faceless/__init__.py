@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import os
 from pathlib import Path
+import subprocess
 import shutil
 from typing import Literal
 import tqdm
@@ -36,19 +38,87 @@ def load_label_names() -> dict[int, str]:
     return {}
 
 
+def normalize_label_name(name: str) -> str:
+    return "".join(char for char in name.lower() if char.isalnum())
+
+
+def update_label_names_from_model(model: YOLO, label_names: dict[int, str]) -> None:
+    model_names = model.names
+    if isinstance(model_names, dict):
+        label_names.update({int(key): str(value) for key, value in model_names.items()})
+        return
+    label_names.update({index: str(value) for index, value in enumerate(model_names)})
+
+
+def resolve_required_class_ids(
+    model_name: str,
+    label_names: dict[int, str],
+    fallback_girl_or_woman_classes: set[int],
+    fallback_human_face_class: int,
+) -> tuple[set[int], set[int], YOLO | None]:
+    girl_or_woman_labels = {"girl", "woman", "women"}
+    human_face_labels = {"human face", "face"}
+    normalized_girl_or_woman_labels = {normalize_label_name(name) for name in girl_or_woman_labels}
+    normalized_human_face_labels = {normalize_label_name(name) for name in human_face_labels}
+    model: YOLO | None = None
+
+    girl_or_woman_classes = {
+        class_id
+        for class_id, class_name in label_names.items()
+        if normalize_label_name(class_name) in normalized_girl_or_woman_labels
+    }
+    human_face_classes = {
+        class_id
+        for class_id, class_name in label_names.items()
+        if normalize_label_name(class_name) in normalized_human_face_labels
+    }
+
+    if not girl_or_woman_classes or not human_face_classes:
+        try:
+            model = YOLO(model_name)
+            update_label_names_from_model(model, label_names)
+        except Exception:
+            model = None
+
+        girl_or_woman_classes = {
+            class_id
+            for class_id, class_name in label_names.items()
+            if normalize_label_name(class_name) in normalized_girl_or_woman_labels
+        }
+        human_face_classes = {
+            class_id
+            for class_id, class_name in label_names.items()
+            if normalize_label_name(class_name) in normalized_human_face_labels
+        }
+
+    if not girl_or_woman_classes:
+        girl_or_woman_classes = set(fallback_girl_or_woman_classes)
+    if not human_face_classes:
+        human_face_classes = {fallback_human_face_class}
+
+    return girl_or_woman_classes, human_face_classes, model
+
+
 def parse_label_counts(label_path: Path) -> dict[int, int]:
     if not label_path.is_file():
         return {}
 
     counts: dict[int, int] = {}
-    for line in label_path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for line in label_path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
         parts: list[str] = line.split()
         if not parts:
             continue
+        class_token = parts[0].lstrip("\ufeff")
         try:
-            class_id = int(parts[0])
+            class_id = int(class_token)
         except ValueError:
-            continue
+            try:
+                class_id_float = float(class_token)
+            except ValueError:
+                continue
+            if not class_id_float.is_integer():
+                continue
+            class_id = int(class_id_float)
         counts[class_id] = counts.get(class_id, 0) + 1
     return counts
 
@@ -98,7 +168,50 @@ def resolve_group_folder_name(label_counts: dict[int, int], group_definitions: l
     return None
 
 
-def parse_arguments() -> tuple[Literal['yolov8n-oiv7.pt'], set[int], Literal[264], bool, float, Path, Path, Path, bool, bool]:
+def prompt_yes_no(prompt: str, default_yes: bool) -> bool:
+    suffix = "[Y/n]" if default_yes else "[y/N]"
+    while True:
+        response = input(f"{prompt} {suffix} ").strip().lower()
+        if not response:
+            return default_yes
+        if response in {"y", "yes"}:
+            return True
+        if response in {"n", "no"}:
+            return False
+        print("Please answer with y or n.")
+
+
+def open_directory_in_explorer(path: Path) -> None:
+    try:
+        if os.name == "nt":
+            os.startfile(str(path))  # type: ignore[attr-defined]
+            return
+        if os.name == "posix":
+            opener = "open" if "darwin" in os.sys.platform else "xdg-open"
+            subprocess.run([opener, str(path)], check=False)
+            return
+    except Exception as error:
+        print(f"Could not open {path}: {error}")
+
+
+def prompt_open_folders(source: Path, labels: Path) -> None:
+    if not os.isatty(0):
+        return
+
+    try:
+        if prompt_yes_no("Open source input directory in File Explorer?", default_yes=True):
+            open_directory_in_explorer(source)
+            return
+        if prompt_yes_no("Open labels folder?", default_yes=False):
+            if labels.is_dir():
+                open_directory_in_explorer(labels)
+            else:
+                print(f"Labels folder does not exist: {labels}")
+    except (EOFError, KeyboardInterrupt):
+        print()
+
+
+def parse_arguments() -> tuple[Literal['yolov8n-oiv7.pt'], set[int], int, bool, float, Path, Path, Path, bool, bool]:
     MODEL_NAME = "yolov8n-oiv7.pt"
     GIRL_OR_WOMAN_CLASSES: set[int] = {216, 594}
     HUMAN_FACE_CLASS = 264
@@ -154,7 +267,16 @@ def main() -> None:
     auto_directory = AutoDirectory
     group_directory = GroupDirectory
     group_definitions = load_group_definitions() if group_directory else []
-    model = None
+    (
+        GIRL_OR_WOMAN_CLASSES,
+        HUMAN_FACE_CLASSES,
+        model,
+    ) = resolve_required_class_ids(
+        model_name=MODEL_NAME,
+        label_names=label_names,
+        fallback_girl_or_woman_classes=GIRL_OR_WOMAN_CLASSES,
+        fallback_human_face_class=HUMAN_FACE_CLASS,
+    )
 
     if ForceLabels or not labels.is_dir():
         if model is None:
@@ -180,7 +302,7 @@ def main() -> None:
 
         label_counts = parse_label_counts(label_path)
         has_girl_or_woman = any(class_id in GIRL_OR_WOMAN_CLASSES for class_id in label_counts)
-        has_human_face = HUMAN_FACE_CLASS in label_counts
+        has_human_face = any(class_id in HUMAN_FACE_CLASSES for class_id in label_counts)
 
         if has_girl_or_woman and has_human_face:
             continue
@@ -192,11 +314,7 @@ def main() -> None:
                 if folder_name is None:
                     if model is None:
                         model = YOLO(MODEL_NAME)
-                    model_names = model.names
-                    if isinstance(model_names, dict):
-                        label_names.update({int(key): str(value) for key, value in model_names.items()})
-                    else:
-                        label_names.update({index: str(value) for index, value in enumerate(model_names)})
+                    update_label_names_from_model(model, label_names)
                     folder_name = label_names.get(primary_class_id, f"class_{primary_class_id}")
                 destination_path = Destination / sanitize_folder_name(folder_name)
             else:
@@ -212,6 +330,8 @@ def main() -> None:
 
         destination_path.mkdir(parents=True, exist_ok=True)
         shutil.move(str(file_path), str(destination_path / file_path.name))
+
+    prompt_open_folders(source=source, labels=labels)
 
 if __name__ == "__main__":
     main()
