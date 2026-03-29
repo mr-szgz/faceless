@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Added `mise` devex tasks: `init` to create a seeded uv virtual environment on Python 3.10 and `devel` to sync/install editable dependencies for local development.
+- Added `mise` devex tasks: `init` to create a seeded uv virtual environment and `devel` to sync/install editable dependencies for local development.
 
 ### Changed
-- Aligned local toolchain Python in `mise.toml` to `3.10` and synchronized project metadata in `pyproject.toml` with an explicit `>=3.10,<3.11` runtime constraint.
+- Updated the local `mise` Python tool and `tasks.init` interpreter target to `3.12`.
+- Updated `pyproject.toml` `requires-python` to `>=3.10` to match the current uv project constraint.
 
 ## [0.3.1] - 2026-03-29
 ### Added

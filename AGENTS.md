@@ -37,8 +37,8 @@ Packaging/dev packages:
 
 Notes:
 
-- `pyproject.toml` currently requires Python `>=3.11`.
-- `mise.toml` pins local toolchain to Python `3.13`.
+- `pyproject.toml` currently requires Python `>=3.10`.
+- `mise.toml` pins local toolchain to Python `3.12`.
 
 ## Runtime Behavior and Patterns
 
