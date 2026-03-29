@@ -3,6 +3,10 @@ powershell = "7"
 python = "3.12"
 uv = "latest"
 
+[env]
+UV_LINK_MODE="copy"
+_.path = [".venv",".venv/Scripts"]
+
 [tasks.build]
 run = "pwsh -NoProfile -File scripts/Invoke-Build-Faceless-Wheels.ps1"
 
@@ -18,6 +22,3 @@ run = "pwsh -NoProfile -File scripts/Invoke-Devel.ps1"
 
 [tasks.test]
 run = ".venv\\Scripts\\python.exe -m pytest -q"
-
-[tasks.regression]
-run = "pwsh -NoProfile -File scripts/Invoke-Regression-Faceless.ps1"

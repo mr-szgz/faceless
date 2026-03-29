@@ -7,9 +7,11 @@ import sys
 from pathlib import Path
 
 from ultralytics import YOLO
+from faceless.models import download_models
 
 DEFAULT_MODEL_NAME = "yolov8n-oiv7.pt"
-
+DEFAULT_MATCH_SELECTORS = "216,594"
+REQUIRED_FACE_SELECTORS = "264"
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="faceless")
@@ -26,10 +28,17 @@ def main() -> None:
     )
     parser.add_argument("-Conf", "--conf", type=float, default=0.2, help="Model confidence threshold")
     parser.add_argument(
+        "-Match",
+        "--match",
+        default=DEFAULT_MATCH_SELECTORS,
+        dest="match",
+        help='Required match class IDs, comma-separated (example: "1,43,51"). Default: "216,594".',
+    )
+    parser.add_argument(
         "-Directory",
         "--directory",
-        default="noface",
-        help="Output directory name for moved files (default: noface)",
+        default="faceless",
+        help="Output directory name for moved files (default: faceless)",
     )
     parser.add_argument(
         "-Auto",
@@ -39,17 +48,9 @@ def main() -> None:
         dest="auto_directory",
         help="Move non-matching files into per-label folders under the output directory",
     )
-
     args = parser.parse_args(sys.argv[1:])
     source_text = args.path_option or args.path
-    if source_text is None:
-        parser.error("Source path is required. Use -Path/--path or pass it positionally.")
-
     source = Path(source_text).expanduser().resolve()
-    if not source.exists():
-        parser.error(f"Source path does not exist: {source}")
-    if not source.is_dir():
-        parser.error(f"Source path is not a directory: {source}")
 
     labels = source / "labels"
     destination_root = source / args.directory
@@ -60,15 +61,16 @@ def main() -> None:
     )
 
     model = None
+    # SOMEDAY: be less niave about whether labels exist or not to allow resume
     if generate_labels or args.auto_directory:
-        model = YOLO(DEFAULT_MODEL_NAME)
+        model = YOLO(str(download_models(DEFAULT_MODEL_NAME)))
 
     if generate_labels and source_files:
         labels.mkdir(parents=True, exist_ok=True)
         escaped_source = glob.escape(str(source))
         source_pattern = f"{escaped_source}{'' if escaped_source.endswith(('/', '\\')) else os.sep}*.*"
         print(f"Generating labels in {labels}")
-        for _ in model.predict(
+        for _ in model.predict( # pyright: ignore[reportOptionalMemberAccess]
             source=source_pattern,
             conf=args.conf,
             project=str(source),
@@ -76,40 +78,25 @@ def main() -> None:
             save=False,
             save_txt=True,
             save_conf=True,
+            vid_stride=50, # bigger numbers skip more frames of video, lower values analyze more frames
             stream=True,
             exist_ok=True,
             verbose=True,
         ):
-            pass
+            pass # 
+    
+    def parse_class_ids(selector_text: str) -> set[int]:
+        return {int(token.strip()) for token in selector_text.split(",") if token.strip()}
 
-    girl_or_woman_classes = {216, 594}
-    human_face_classes = {264}
+    required_match_classes = parse_class_ids(args.match)
+    required_face_classes = parse_class_ids(REQUIRED_FACE_SELECTORS)
+
     label_names: dict[int, str] = {}
-
-    if model is not None:
+    if model is not None and args.auto_directory:
         if isinstance(model.names, dict):
             label_names = {int(key): str(value) for key, value in model.names.items()}
         else:
             label_names = {index: str(value) for index, value in enumerate(model.names)}
-
-        normalized_girl_or_woman = {"girl", "woman", "women"}
-        normalized_human_face = {"humanface", "face"}
-
-        resolved_girl_or_woman = {
-            class_id
-            for class_id, class_name in label_names.items()
-            if "".join(ch for ch in class_name.lower() if ch.isalnum()) in normalized_girl_or_woman
-        }
-        resolved_human_face = {
-            class_id
-            for class_id, class_name in label_names.items()
-            if "".join(ch for ch in class_name.lower() if ch.isalnum()) in normalized_human_face
-        }
-
-        if resolved_girl_or_woman:
-            girl_or_woman_classes = resolved_girl_or_woman
-        if resolved_human_face:
-            human_face_classes = resolved_human_face
 
     moved_count = 0
     for source_file in source_files:
@@ -118,23 +105,14 @@ def main() -> None:
 
         if label_path.is_file():
             for line in label_path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
-                parts = line.split()
-                if not parts:
-                    continue
-                token = parts[0].lstrip("\ufeff")
-                try:
-                    token_value = float(token)
-                except ValueError:
-                    continue
-                if not token_value.is_integer():
-                    continue
-                class_id = int(token_value)
+                class_id = int(float(line.split()[0].lstrip("\ufeff")))
                 label_counts[class_id] = label_counts.get(class_id, 0) + 1
 
-        has_girl_or_woman = any(class_id in girl_or_woman_classes for class_id in label_counts)
-        has_human_face = any(class_id in human_face_classes for class_id in label_counts)
+        detected_classes = set(label_counts)
+        has_required_match = bool(detected_classes & required_match_classes)
+        has_required_face = bool(detected_classes & required_face_classes)
 
-        if has_girl_or_woman and has_human_face:
+        if has_required_match and has_required_face:
             continue
 
         destination_path = destination_root

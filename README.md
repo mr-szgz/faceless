@@ -5,20 +5,28 @@ Faceless analyzes images and video using Ultralytics YOLO to segregate faceless 
 ## Install
 
 Download Binary for your system or install .whl from latest Release
+Visit release and find latest <https://github.com/mr-szgz/faceless/releases>
 
-- <https://github.com/mr-szgz/faceless/releases>
+Install the whl directly like 
+
+```sh
+pip install https://github.com/mr-szgz/faceless/releases/download/v0.3.1/faceless-0.3.1-py3-none-any.whl --force
+```
+
+or clone the repo and you can `pip install -e .` (`mise run devel` reccomended)
+
 
 ## Usage
 
-**Quickstart with..**
+**Automatically Move Faceless Media and Group by Label**
 
-```bash
-.\faceless "<path-to-images>" -Auto
+```sh
+faceless "p:/path/to/media" -Auto
 ```
 
-```bash
+```sh
 $ faceless --help
-usage: faceless [-h] [-Path PATH_OPTION] [-Label] [-Conf CONF] [-Directory DIRECTORY] [-Info] [-Version] [-Auto | -Group] [path]
+usage: faceless [-h] [-Path PATH_OPTION] [-Label] [-Conf CONF] [-Directory DIRECTORY] [-Auto] [-Version] [path]                                    
 
 positional arguments:
   path                  Source directory containing images
@@ -32,11 +40,10 @@ options:
   -Conf CONF, --conf CONF
                         Model confidence threshold
   -Directory DIRECTORY, --directory DIRECTORY
-                        Output directory name for moved files (default: noface)
-  -Info, --info         Show faceless install/runtime paths as JSON
-  -Version, --version   show program's version number and exit
+                        Output directory name for moved files (default: faceless)
   -Auto, --auto, -a     Move non-matching files into per-label folders under the output directory
-  -Group, --group, -g   Move non-matching files into grouped folders under the output directory based on faceless/labels/*.yaml priority
+  -Version, --version, -v
+                        show program's version number and exit
 ```
 
 ## Changes
