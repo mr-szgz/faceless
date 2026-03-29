@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 > - Keep versioning aligned with [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2026-03-29
 ### Added
 - Write `main.log` and `error.log` under userdata and expose CLI log inspection commands.
 - Require Python `3.10+` for installation and runtime.
