@@ -1,6 +1,6 @@
 [tools]
 powershell = "7"
-python = "3.10"
+python = "3.12"
 uv = "latest"
 
 [tasks.build]
@@ -10,7 +10,7 @@ run = "pwsh -NoProfile -File scripts/Invoke-Build-Faceless-Wheels.ps1"
 run = "pwsh -NoProfile -File scripts/Invoke-Clean-Faceless-Build.ps1"
 
 [tasks.init]
-run = "uv venv --python 3.10 --seed"
+run = "uv venv --python 3.12 --seed"
 
 [tasks.devel]
 run = "uv sync; uv pip install -e ."
