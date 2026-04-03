@@ -12,6 +12,18 @@ from faceless.models import download_models
 DEFAULT_MODEL_NAME = "yolov8n-oiv7.pt"
 DEFAULT_MATCH_SELECTORS = "216,594"
 REQUIRED_FACE_SELECTORS = "264"
+VIDEO_EXTENSIONS = {
+    ".avi",
+    ".flv",
+    ".m4v",
+    ".mkv",
+    ".mov",
+    ".mp4",
+    ".mpeg",
+    ".mpg",
+    ".webm",
+    ".wmv",
+}
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="faceless")
@@ -70,6 +82,7 @@ def main() -> None:
         escaped_source = glob.escape(str(source))
         source_pattern = f"{escaped_source}{'' if escaped_source.endswith(('/', '\\')) else os.sep}*.*"
         print(f"Generating labels in {labels}")
+        vid_stride = 90 # the numbers of frames to skip between testing frames. 30 fps is common, so lets do 90 have 1 frame every 3 seconds of video
         for _ in model.predict( # pyright: ignore[reportOptionalMemberAccess]
             source=source_pattern,
             conf=args.conf,
@@ -78,7 +91,7 @@ def main() -> None:
             save=False,
             save_txt=True,
             save_conf=True,
-            vid_stride=50, # bigger numbers skip more frames of video, lower values analyze more frames
+            vid_stride=vid_stride, 
             stream=True,
             exist_ok=True,
             verbose=True,
@@ -100,11 +113,22 @@ def main() -> None:
 
     moved_count = 0
     for source_file in source_files:
-        label_path = labels / f"{source_file.stem}.txt"
         label_counts: dict[int, int] = {}
+        label_files: list[Path] = []
+        label_path = labels / f"{source_file.stem}.txt"
 
-        if label_path.is_file():
-            for line in label_path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+        if source_file.suffix.lower() in VIDEO_EXTENSIONS:
+            label_files = sorted(labels.glob(f"{source_file.stem}_*.txt"))
+            stem_dir = labels / source_file.stem
+            if stem_dir.is_dir():
+                label_files.extend(sorted(stem_dir.glob("*.txt")))
+            if not label_files and label_path.is_file():
+                label_files = [label_path]
+        elif label_path.is_file():
+            label_files = [label_path]
+
+        for label_file in label_files:
+            for line in label_file.read_text(encoding="utf-8-sig", errors="replace").splitlines():
                 class_id = int(float(line.split()[0].lstrip("\ufeff")))
                 label_counts[class_id] = label_counts.get(class_id, 0) + 1
 

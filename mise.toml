@@ -16,8 +16,8 @@ run = "pwsh -NoProfile -File scripts/Invoke-Clean-Faceless-Build.ps1"
 [tasks.init]
 run = "pwsh -NoProfile -File scripts/Invoke-Initialization.ps1"
 
-[tasks.devel]
-run = "pwsh -NoProfile -File scripts/Invoke-Devel.ps1"
+[tasks.dev]
+run = "pwsh -NoProfile -File scripts/Invoke-Dev.ps1"
 # TODO: check if mise supports task dependencies or chains and make init upstream of devel
 
 [tasks.test]
