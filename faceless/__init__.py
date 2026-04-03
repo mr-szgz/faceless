@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ultralytics import YOLO
 from faceless.models import download_models
+from faceless.users import ask_user_yn, open_user_folder
 
 DEFAULT_MODEL_NAME = "yolov8n-oiv7.pt"
 DEFAULT_MATCH_SELECTORS = "216,594"
@@ -151,6 +152,8 @@ def main() -> None:
         moved_count += 1
 
     print(f"Moved {moved_count} non-matching file(s).")
+    if ask_user_yn("Open output folder?", defaults_yes=False):
+        open_user_folder(destination_root)
 
 
 if __name__ == "__main__":
