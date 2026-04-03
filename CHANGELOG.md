@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-03
+### Fixed
+- Respect YOLO per-frame video labels so videos are only moved when they truly miss required classes.
+
 ## [0.4.2] - 2026-03-29
 ### Fixed
 - Use a single user-home cache location (`~/.faceless/models`) for YOLO model downloads to prevent cwd-based re-downloads.
