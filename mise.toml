@@ -8,17 +8,14 @@ UV_LINK_MODE="copy"
 _.path = [".venv",".venv/Scripts"]
 
 [tasks.build]
-run = "pwsh -NoProfile -File scripts/Invoke-Build-Faceless-Wheels.ps1"
+run = "pwsh -NoProfile -File scripts/Invoke-Build.ps1"
 
 [tasks.clean]
-run = "pwsh -NoProfile -File scripts/Invoke-Clean-Faceless-Build.ps1"
+run = "pwsh -NoProfile -File scripts/Invoke-Clean.ps1"
 
 [tasks.init]
-run = "pwsh -NoProfile -File scripts/Invoke-Initialization.ps1"
+run = "pwsh -NoProfile -File scripts/Invoke-Init.ps1"
 
 [tasks.dev]
 run = "pwsh -NoProfile -File scripts/Invoke-Dev.ps1"
 # TODO: check if mise supports task dependencies or chains and make init upstream of devel
-
-[tasks.test]
-run = ".venv\\Scripts\\python.exe -m pytest -q"
