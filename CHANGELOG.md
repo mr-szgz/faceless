@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-04-03
+### Added
+- Generate README.md from the release template.
+
 ## [0.5.0] - 2026-04-03
 ### Fixed
 - Respect YOLO per-frame video labels so videos are only moved when they truly miss required classes.
