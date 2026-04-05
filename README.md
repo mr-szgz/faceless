@@ -21,12 +21,12 @@ or clone the repo and you can `pip install -e .` (`mise run devel` reccomended)
 **Automatically Move Faceless Media and Group by Label**
 
 ```sh
-faceless "p:/path/to/media" -Auto
+faceless "p:/path/to/media"
 ```
 
 ```sh
 $ faceless --help
-usage: faceless [-h] [-Path PATH_OPTION] [-Label] [-Conf CONF] [-Directory DIRECTORY] [-Auto] [-Version] [path]                                    
+usage: faceless [-h] [-Path PATH_OPTION] [-Label] [-Conf CONF] [-Directory DIRECTORY] [-Version] [path]                                    
 
 positional arguments:
   path                  Source directory containing images
@@ -41,7 +41,6 @@ options:
                         Model confidence threshold
   -Directory DIRECTORY, --directory DIRECTORY
                         Output directory name for moved files (default: faceless)
-  -Auto, --auto, -a     Move non-matching files into per-label folders under the output directory
   -Version, --version, -v
                         show program's version number and exit
 ```

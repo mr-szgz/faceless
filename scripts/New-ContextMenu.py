@@ -12,14 +12,14 @@ REGFILE_JINJA_TPL = """Windows Registry Editor Version 5.00
 "Icon"="{{ faceless_exe_path }}"
 
 [HKEY_CURRENT_USER\\Software\\Classes\\Directory\\shell\\Faceless\\command]
-@="\\"{{ faceless_exe_path }}\\" -Auto \\"%1\\""
+@="\\"{{ faceless_exe_path }}\\" \\"%1\\""
 
 [HKEY_CURRENT_USER\\Software\\Classes\\Directory\\shell\\FacelessForce]
 @="Run Faceless (Force Labels)"
 "Icon"="{{ faceless_exe_path }}"
 
 [HKEY_CURRENT_USER\\Software\\Classes\\Directory\\shell\\FacelessForce\\command]
-@="\\"{{ faceless_exe_path }}\\" -Auto -Force \\"%1\\""
+@="\\"{{ faceless_exe_path }}\\" -Force \\"%1\\""
 """
 
 # TODO: decompose this function into parse_arguments as its fucking not useful and just noise here as its called once and  FUJCKING MASSIVE VIOLATION WHY THE FUCK ARE YOU STILL DOING THIS SHIT!?
