@@ -21,7 +21,7 @@ if (Test-Path -LiteralPath $labelsPath) {
     Remove-Item -LiteralPath $labelsPath -Recurse -Force
 }
 
-& $pythonExe -m faceless $workDir -Auto -Label
+& $pythonExe -m faceless $workDir -Label
 if ($LASTEXITCODE -ne 0) {
     throw "faceless run failed with exit code $LASTEXITCODE"
 }
