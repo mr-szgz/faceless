@@ -29,28 +29,21 @@ faceless "p:/path/to/media"
 Show help:
 
 ```sh
-python -m faceless --help
-usage: faceless [-h] [-Path PATH_OPTION] [-Label] [-Conf CONF] [-Match MATCH]
-                [-Directory DIRECTORY]
-                [path]
+$ faceless --help                                                                                                            
+usage: faceless [-h] [-Force] [-Confidence CONF_FLOAT] [-RequireIds YOLO_CLASS_INTS] [-Directory OUTPUT_DIR] [path]                                              
 
 positional arguments:
-  path                  Source directory containing images
+  path                  Source directory containing videos/images
 
 options:
   -h, --help            show this help message and exit
-  -Path PATH_OPTION, --path PATH_OPTION
-                        Source directory containing images
-  -Label, --label, -Force, --force
-                        Force regeneration of labels
-  -Conf CONF, --conf CONF
+  -Force, --force       Force regeneration of labels
+  -Confidence CONF_FLOAT, --confidence CONF_FLOAT
                         Model confidence threshold
-  -Match MATCH, --match MATCH
-                        Required match class IDs, comma-separated (example:
-                        "1,43,51"). Default: "216,594".
-  -Directory DIRECTORY, --directory DIRECTORY
-                        Output directory name for moved files (default:
-                        faceless)
+  -RequireIds YOLO_CLASS_INTS, --require-ids YOLO_CLASS_INTS
+                        YOLO class IDs to keep comma-separated. All classes available in faceless/datasets/OpenImagesV7.yaml. Default: "216,594"
+  -Directory OUTPUT_DIR, --directory OUTPUT_DIR
+                        Override output directory. Default: ./faceless
 ```
 
 ## Windows Context Menu
