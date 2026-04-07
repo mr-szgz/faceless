@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
                                "tqdm",
                                "argparse",
                                "opencv-python",
-                               r"S:\Spaces\Image-Classification\Faceless\dist\faceless-0.7.1-py3-none-any.whl"
+                               r"S:\Spaces\Image-Classification\Faceless\dist\faceless-0.8.0-py3-none-any.whl"
                             ])
         # subprocess.check_call([str(pyexe), "-m", "faceless", "--help"])
         args.install_menu = True
