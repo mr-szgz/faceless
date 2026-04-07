@@ -11,6 +11,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-07
+### Added
+- Install the full Faceless app from `run-faceless --install`, including embedded Python and dependencies.
+
+### Changed
+- Expand `run-faceless` install flow to bootstrap the app repo before pip-installing the wheel.
+
 ## [0.7.1] - 2026-04-06
 ### Changed
 - Bump release metadata to `0.7.1` and refresh README install snippets.
