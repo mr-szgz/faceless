@@ -11,7 +11,7 @@ DEFAULT_YOLO_MATCH_CLASSES = "216,594"
 DEFAULT_YOLO_FACE_CLASSES = "264"
 
 DEPENDENCIES_DIR = FACELESS_CONFIG_DIR / "dependencies"
-print(f"Dependencies dir {DEPENDENCIES_DIR}")
+# print(f"[CONFIG] Dependencies dir {DEPENDENCIES_DIR}")
 
 cfg = ConfigParser()
 
