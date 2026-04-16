@@ -9,15 +9,6 @@ import os
 env = {**os.environ, "PYTHONNOUSERSITE": "1", "PYTHONPATH": ""}
 
 
-def _resolve_context_menu_icon(launcher_exe: Path) -> Path:
-    if getattr(sys, "frozen", False):
-        return launcher_exe
-
-    repo_icon = Path(__file__).resolve().parent.parent / "assets" / "logo.ico"
-    if repo_icon.exists():
-        return repo_icon
-    return launcher_exe
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="run-faceless")
     parser.add_argument(
@@ -143,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
             env=env,
         )
         subprocess.check_call(
-            [str(pyexe), "-m", "pip", "install", "--upgrade", "pip"],
+            [str(pyexe), "-m", "pip", "install", "--upgrade", "pip", "cython"],
             env=env,
         )
         # check if this machine can support Cuda12 and if torch cpu is installed then uninstall it and allow below to isntall cua enabled torch properly
@@ -151,9 +142,10 @@ def main(argv: list[str] | None = None) -> int:
             [str(pyexe), "-m", "pip", "install", "--index-url", "https://download.pytorch.org/whl/cu128", "torch", "torchvision", "torchaudio", "--force-reinstall" if args.force_reinstall else ""],
             env=env,
         )
+        insightface_whl = ".\\dist\\whl\\insightface-0.7.3-cp310-cp310-win_amd64.whl"
         subprocess.check_call(
             [str(pyexe), "-m", "pip", "install", "numpy", "onnxruntime-gpu", "triton-windows>=3.5.0.post21",
-                                                "ultralytics", "tqdm", "argparse", "opencv-python" ], env=env)
+                                                "ultralytics", "tqdm", "argparse", "opencv-python", "scikit-image", insightface_whl, "huggingface_hub" ], env=env)
         subprocess.check_call(
             [str(pyexe), "-m", "pip", "uninstall", "-y", "faceless"], env=env,
         )
@@ -173,7 +165,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.install_menu:
         import winreg
         launcher_exe = Path(sys.executable).resolve()
-        launcher_icon = _resolve_context_menu_icon(launcher_exe)
+        launcher_icon = Path(__file__).resolve().parent.parent / "assets" / "logo.ico"
+        if getattr(sys, "frozen", False):
+            launcher_icon = launcher_exe
         command_value = f"\"{launcher_exe}\" \"%1\""
         with winreg.CreateKeyEx(
             winreg.HKEY_CURRENT_USER, r"Software\Classes\Directory\shell\Faceless", 0, winreg.KEY_SET_VALUE

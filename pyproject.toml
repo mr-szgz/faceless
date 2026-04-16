@@ -7,11 +7,17 @@ name = "faceless"
 version = "0.8.0"
 requires-python = ">=3.10,<3.11"
 dependencies = [
+    "pip",
     "ultralytics",
     "tqdm",
     "argparse",
     "scikit-image",
+    "huggingface_hub",
     "opencv-python",
+    "numpy",
+    "torch",
+    "torchvision",
+    "onnxruntime-gpu",
 ]
 
 [project.optional-dependencies]
@@ -20,13 +26,6 @@ dev = [
     "pip",
     "cibuildwheel",
     "pyinstaller>=6"
-]
-gpu = [
-    # Install with: pip install ".[gpu]" --extra-index-url https://download.pytorch.org/whl/cu128
-    "numpy",
-    "torch",
-    "torchvision",
-    "onnxruntime-gpu",
 ]
 
 [project.scripts]

@@ -9,8 +9,7 @@ from ultralytics import YOLO
 from faceless.config import get_config, DEPENDENCIES_DIR, DEFAULT_YOLO_MATCH_CLASSES, DEFAULT_YOLO_FACE_CLASSES, DEFAULT_MODEL_NAME
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
-
-from faceless.arcfaces import arcface_recognize
+from faceless.insightface import cluster_faces
 
 MISSES_DIR_NAME = "Unknown"
 yolo_supported_images = ['jpeg', 'webp', 'jpg', 'png', 'dng', 'tiff', 'tif', 'jpeg2000', 'heif', 'avif', 'heic', 'jp2', 'bmp', 'mpo']
@@ -44,11 +43,11 @@ def main() -> None:
     )
     
     parser.add_argument(
-        "-Faces",
-        "--faces",
+        "-SkipFaces",
+        "--skip-faces",
         action="store_true",
-        dest="faces",
-        help="Save detected faces to a 'Faces' directory"
+        dest="skip_faces",
+        help="Skip saving detected faces to a 'Faces' directory"
     )
 
     args = parser.parse_args(sys.argv[1:])
@@ -94,10 +93,7 @@ def main() -> None:
         batch = 1
         
         import torch
-        print(f"[check] Torch available: {torch.cuda.is_available()} {torch.__version__}")
-        # if torch.cuda.is_available():
-        #     half = True
-        #     batch = 2
+        print(f"[check] torch available: {torch.cuda.is_available()} {torch.__version__}")
         print(f"[debug] half={half} (FP16 inference)")
         print(f"[debug] batch={batch}")
         results = model(
@@ -137,23 +133,28 @@ def main() -> None:
                     all_labels[class_int] = all_labels.get(class_int, 0)
                     all_labels[class_int] += 1
                     
-                    if class_int in face_classes and args.faces:
+                    if class_int in face_classes and not args.skip_faces:
                         orig_file = Path(result.path)
                         if orig_file.is_file() and orig_file.suffix.lstrip('.').lower() in yolo_supported_images:
                             face_dir = sources_path / "Faces"
                             face_dir.mkdir(exist_ok=True)
-                            file = face_dir / f"{orig_file.stem}_face{i}{orig_file.suffix}"
-                            print(f"> Saving Faces {file}")
+                            face_file = face_dir / f"{orig_file.stem}_face{i}{orig_file.suffix}"
+                            from PIL import Image
+                            import hashlib
+                            imagedata = Image.open(orig_file)
+                            w, h = imagedata.size
+                            md5_name = hashlib.md5(imagedata.tobytes()).hexdigest()
+                            filename = f"{md5_name}_{w}x{h}{face_file.suffix}"
+                            print(f"> Saving Faces {Path(face_dir) / filename}")
                             save_one_box(
                                 boxes[i].xyxy,
                                 result.orig_img.copy(),
-                                file=file,
-                                gain=1.2, # 120% of original bb
+                                file=Path(face_dir) / filename,
+                                gain=1.25, # 125% of original bb
                                 square=True,
                                 BGR=True,
                                 save=True
                             )
-                            
 
                 print(f"> detected_classes {detected_classes} in face_classes {face_classes} and match_classes {match_classes}")
                 if bool(face_classes & detected_classes) and bool(match_classes & detected_classes):
@@ -180,25 +181,25 @@ def main() -> None:
                 print(f"> MOVE to most common label ({move_file})")
                 shutil.move(result.path, move_file)
                 if move_file.exists():
-                    print(f"> confirmed move file {move_file}")
+                    print(f"[ok] {move_file}")
                 if Path(result.path).exists():
-                    print(f"!!FILE WAS NOT MOVED!! {str(Path(result.path))}")
+                    print(f"[warn] !!FILE WAS NOT MOVED!! {result.path}")
                     missed_moves.append((result.path, move_file))
                 print("")
                 continue
             except Exception as exc:
                 print(f"[error] FAIL to process {result.path}: {exc}")
+                import traceback
+                traceback.print_exc()
                 error_count += 1
                 error_results.append(result)
                 print("")
                 continue
     print("")
-    if missed_moves and len(missed_moves) > 0:
-        for m in missed_moves:
-            result_path, move_file = m
-            print(f"> MOVE retry ({move_file})")
-            shutil.move(result_path, move_file)
-        
+    
+    if not args.skip_faces:
+        cluster_faces(sources_path / "Faces")
+
     print(f"{moved_count} organized into {len(all_labels)} labels")
     print(f"{miss_count} without labels (moved to {sources_path / MISSES_DIR_NAME})")
     print(f"{error_count} skipped due to errors")
